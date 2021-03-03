@@ -4,11 +4,13 @@
 
 import sys
 
+
 def get_assignements(capacitySubset, demand, travel_cost):
     for capacity in capacitySubset:
         if 0 < capacity:
-            
+            pass
             # todo
+
 
 def minimum_travel_cost(demand, capacity, travel_cost):
     """
@@ -27,16 +29,17 @@ def minimum_travel_cost(demand, capacity, travel_cost):
     assignments = []
 
     total_demand = sum(demand)
+    sortedescending_capacity = sorted(capacity, reverse=True)
+    print(sortedescending_capacity)
     capacities_satisfying_total_demand = getCapacitySubSets_satisfying(
         total_demand,
-        sorted(capacity, reverse=True))
+        sortedescending_capacity)
     print('capacities_satisfying_total_demand : ',
           capacities_satisfying_total_demand)
     for capacitySubset in capacities_satisfying_total_demand:
         get_assignements(capacitySubset, demand, travel_cost)
 
         return (cost, assignments)
-
 
 def get_subset(values, choices=None):
     subset = []
@@ -54,14 +57,12 @@ def getCapacitySubSets_satisfying(total_demand,
                                   capacity,
                                   current=0,
                                   capacities_satisfying_total_demand=None):
-
     if capacities_satisfying_total_demand is None:
         capacities_satisfying_total_demand = []
     global choices
     global n
     global totaldemand
     global totalcapacity
-
 
     if current == 0:
         n = len(capacity)
@@ -84,13 +85,20 @@ def getCapacitySubSets_satisfying(total_demand,
 
         # try without
         choices[current] = False
-        if totaldemand < totalcapacity - capacity[current]:
+        if totaldemand <= totalcapacity - capacity[current]:
             getCapacitySubSets_satisfying(total_demand,
                                           capacity,
                                           current + 1,
                                           capacities_satisfying_total_demand)
 
     return capacities_satisfying_total_demand
+
+
+"""def getCapacitySubSets_satisfying(d, s):
+    x = len(s)
+    masks = [1 << i for i in range(x)]
+    for i in range(1, 1 << x):
+        yield [ss if (i & mask) else 0 for mask, ss in zip(masks, s)]"""
 
 
 def facility_location(opening_cost, demand, capacity, travel_cost):
@@ -163,9 +171,9 @@ if __name__ == "__main__":
         print("Opening costs : {}".format(opening_cost))
         print("Demand : {}".format(demand))
         print("Capacity : {}".format(capacity))
-        print("Traval costs : {}".format(travel_cost))
+        print("Travel costs : {}".format(travel_cost))
         print("Résultats : {}".format(
             facility_location(opening_cost, demand, capacity,
                               travel_cost)))
     else:
-        print("Veillez fournir un nom d'instance")
+        print("Veuillez fournir un nom d'instance")

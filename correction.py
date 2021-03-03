@@ -35,7 +35,9 @@ def read_instance(file_name):
                 travel_cost[i].append(int(info[j]))
     except:
         print(
-            "Erreur lors de la lecture des données, vérifiez que le fichier de l'instance est dans le même dossier que ce fichier")
+            "Erreur lors de la lecture des données, vérifiez que le "
+            "fichier de l'instance est dans le même dossier que ce "
+            "fichier")
     return opening_cost, demand, capacity, travel_cost
 
 
@@ -114,7 +116,8 @@ def check_functions():
                 print("Solution non optimale")
             elif sol1_check < MIN_TRAVEL_OPT:
                 print(
-                    "Solution trouvée meilleure que la solution optimale prévue... contactez l'assistant")
+                    "Solution trouvée meilleure que la solution "
+                    "optimale prévue... contactez l'assistant")
             else:
                 print("Solution optimale trouvé")
 
@@ -136,7 +139,8 @@ def check_functions():
                 print("Solution non optimale")
             elif sol2_check < OPT:
                 print(
-                    "Solution trouvée meilleure que la solution optimale prévue... contactez l'assistant")
+                    "Solution trouvée meilleure que la solution "
+                    "optimale prévue... contactez l'assistant")
             else:
                 print("Solution optimale trouvé")
 
