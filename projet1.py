@@ -20,7 +20,9 @@ def get_subset(values, choices=None):
     return subset
 
 
-def getMinTravelCostAssigments(values, demand, current=0, subsets=None,
+def getMinTravelCostAssigments(values, choices, demand, travel_cost,
+                               current=0,
+                               subsets=None,
                                recur=0):
     """
 
@@ -33,8 +35,8 @@ def getMinTravelCostAssigments(values, demand, current=0, subsets=None,
     """
     # using a mask of size len(values)
     global n
-    global choices
     global total_demand
+    global Noned
 
     if subsets is None:
         subsets = []
@@ -42,8 +44,14 @@ def getMinTravelCostAssigments(values, demand, current=0, subsets=None,
         print('total_demand:', total_demand)
 
     if current == 0:
-        n = len(values)
-        choices = [True] * n
+        n = 0
+        Noned = 0
+        for i in range(len(choices)):
+            if choices[i] is not None:
+                choices[i] = True
+                n += 1
+            else:
+                Noned += 1
 
     if current == n:
         current_sum = 0
@@ -55,19 +63,25 @@ def getMinTravelCostAssigments(values, demand, current=0, subsets=None,
 
     else:
         # try with
-        choices[current] = True
-        getMinTravelCostAssigments(values, demand, current + 1, subsets,
+        choices[current + Noned] = True
+        getMinTravelCostAssigments(values, choices, demand,
+                                   travel_cost,
+                                   current + 1, subsets,
                                    recur + 1)
         # try without
         if recur == 0:
-            del values[current]
-            del choices[current]
+            values[current + Noned] = 0
+            choices[current + Noned] = None
             if total_demand <= sum(values):
-                getMinTravelCostAssigments(values, demand, current,
+                getMinTravelCostAssigments(values, choices, demand,
+                                           travel_cost,
+                                           current,
                                            subsets, recur)
         else:
-            choices[current] = False
-            getMinTravelCostAssigments(values, demand, current + 1,
+            choices[current + Noned] = False
+            getMinTravelCostAssigments(values, choices, demand,
+                                       travel_cost,
+                                       current + 1,
                                        subsets, recur + 1)
     return subsets
 
@@ -89,12 +103,11 @@ def minimum_travel_cost(demand,
     """
     cost = -1
     assignments = []
-
-    total_demand = sum(demand)
     sortedescending_capacity = sorted(capacity, reverse=True)
     print(sortedescending_capacity)
+    choices = [True] * len(capacity)
     MinTravelCostAssigments = getMinTravelCostAssigments(
-        sortedescending_capacity, demand)
+        sortedescending_capacity, choices, demand, travel_cost)
     print('MinTravelCostAssigments : ',
           MinTravelCostAssigments)
 
