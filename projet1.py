@@ -12,7 +12,69 @@ def get_assignements(capacitySubset, demand, travel_cost):
             # todo
 
 
-def minimum_travel_cost(demand, capacity, travel_cost):
+def get_subset(values, choices=None):
+    subset = []
+    for i in range(len(values)):
+        if choices[i]:
+            subset.append(values[i])
+    return subset
+
+
+def getMinTravelCostAssigments(values, demand, current=0, subsets=None,
+                               recur=0):
+    """
+
+    :param values:
+    :param demand:
+    :param current:
+    :param subsets:
+    :param recur:
+    :return:
+    """
+    # using a mask of size len(values)
+    global n
+    global choices
+    global total_demand
+
+    if subsets is None:
+        subsets = []
+        total_demand = sum(demand)
+        print('total_demand:', total_demand)
+
+    if current == 0:
+        n = len(values)
+        choices = [True] * n
+
+    if current == n:
+        current_sum = 0
+        for i in range(len(choices)):
+            if choices[i]:
+                current_sum += values[i]
+        if total_demand <= current_sum:
+            subsets.append(get_subset(values, choices))
+
+    else:
+        # try with
+        choices[current] = True
+        getMinTravelCostAssigments(values, demand, current + 1, subsets,
+                                   recur + 1)
+        # try without
+        if recur == 0:
+            del values[current]
+            del choices[current]
+            if total_demand <= sum(values):
+                getMinTravelCostAssigments(values, demand, current,
+                                           subsets, recur)
+        else:
+            choices[current] = False
+            getMinTravelCostAssigments(values, demand, current + 1,
+                                       subsets, recur + 1)
+    return subsets
+
+
+def minimum_travel_cost(demand,
+                        capacity,
+                        travel_cost):
     """
      trouve une affectation des familles aux centres de vaccination
      minimisant les coûts de déplacements en considérant que ceux-ci
@@ -31,74 +93,12 @@ def minimum_travel_cost(demand, capacity, travel_cost):
     total_demand = sum(demand)
     sortedescending_capacity = sorted(capacity, reverse=True)
     print(sortedescending_capacity)
-    capacities_satisfying_total_demand = getCapacitySubSets_satisfying(
-        total_demand,
-        sortedescending_capacity)
-    print('capacities_satisfying_total_demand : ',
-          capacities_satisfying_total_demand)
-    for capacitySubset in capacities_satisfying_total_demand:
-        get_assignements(capacitySubset, demand, travel_cost)
+    MinTravelCostAssigments = getMinTravelCostAssigments(
+        sortedescending_capacity, demand)
+    print('MinTravelCostAssigments : ',
+          MinTravelCostAssigments)
 
-        return (cost, assignments)
-
-def get_subset(values, choices=None):
-    subset = []
-    if choices == None:
-        choices = [True] * len(values)
-    for i in range(len(choices)):
-        if choices[i]:
-            subset.append(values[i])
-        else:
-            subset.append(0)
-    return subset
-
-
-def getCapacitySubSets_satisfying(total_demand,
-                                  capacity,
-                                  current=0,
-                                  capacities_satisfying_total_demand=None):
-    if capacities_satisfying_total_demand is None:
-        capacities_satisfying_total_demand = []
-    global choices
-    global n
-    global totaldemand
-    global totalcapacity
-
-    if current == 0:
-        n = len(capacity)
-        totalCapacity = sum(capacity)
-        choices = [False] * n
-        # using a mask of size len(capacity)
-
-    elif current == n:  # print un sousEnsemble
-        subset = get_subset(capacity, choices)
-        if sum(subset) >= total_demand:
-            capacities_satisfying_total_demand.append(subset)
-
-    else:
-        # try with
-        choices[current] = True
-        getCapacitySubSets_satisfying(total_demand,
-                                      capacity,
-                                      current + 1,
-                                      capacities_satisfying_total_demand)
-
-        # try without
-        choices[current] = False
-        if totaldemand <= totalcapacity - capacity[current]:
-            getCapacitySubSets_satisfying(total_demand,
-                                          capacity,
-                                          current + 1,
-                                          capacities_satisfying_total_demand)
-
-    return capacities_satisfying_total_demand
-
-
-"""def getCapacitySubSets_satisfying(d, s):
-    x = len(s)
-    masks = [1 << i for i in range(x)]
-    for i in range(1, 1 << x):
-        yield [ss if (i & mask) else 0 for mask, ss in zip(masks, s)]"""
+    return (cost, assignments)
 
 
 def facility_location(opening_cost, demand, capacity, travel_cost):
