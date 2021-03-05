@@ -5,7 +5,8 @@
 import sys
 
 
-def get_assignements(capacitySubset, demand, travel_cost):
+def get_assignements(capacitySubset, demand, travel_cost, cost=-1,
+                               assignments=None):
     for capacity in capacitySubset:
         if 0 < capacity:
             pass
@@ -17,23 +18,27 @@ def get_subset(values, choices=None):
     for i in range(len(values)):
         if choices[i]:
             subset.append(values[i])
+        else:
+            subset.append(0)
     return subset
 
 
 def getMinTravelCostAssigments(values, choices, demand, travel_cost,
-                               current=0,
-                               subsets=None,
-                               recur=0):
+                               current=0, subsets=None, cost=-1,
+                               assignments=None):
     """
 
+    :param cost:
+    :param assignments:
     :param values:
     :param demand:
     :param current:
     :param subsets:
-    :param recur:
     :return:
     """
     # using a mask of size len(values)
+    if assignments is None:
+        assignments = []
     global n
     global total_demand
     global Noned
@@ -64,25 +69,21 @@ def getMinTravelCostAssigments(values, choices, demand, travel_cost,
     else:
         # try with
         choices[current + Noned] = True
-        getMinTravelCostAssigments(values, choices, demand,
-                                   travel_cost,
-                                   current + 1, subsets,
-                                   recur + 1)
+        getMinTravelCostAssigments(values, choices, demand, travel_cost,
+                                   current + 1, subsets)
         # try without
-        if recur == 0:
+        if current == 0:
             values[current + Noned] = 0
             choices[current + Noned] = None
             if total_demand <= sum(values):
                 getMinTravelCostAssigments(values, choices, demand,
-                                           travel_cost,
-                                           current,
-                                           subsets, recur)
+                                           travel_cost, current,
+                                           subsets)
         else:
             choices[current + Noned] = False
             getMinTravelCostAssigments(values, choices, demand,
-                                       travel_cost,
-                                       current + 1,
-                                       subsets, recur + 1)
+                                       travel_cost, current + 1,
+                                       subsets)
     return subsets
 
 
@@ -122,7 +123,7 @@ def facility_location(opening_cost, demand, capacity, travel_cost):
     :param capacity:
     :param travel_cost:
     :return: if no solution: tuple (-1,[],[])
-            else: tuple (cost, centers, assignments)
+            else: tuple (cost, centers, assigning)
     """
     cost = -1
     centers = []
