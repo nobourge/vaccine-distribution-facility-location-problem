@@ -6,7 +6,7 @@ from projet1 import minimum_travel_cost
 INSTANCE = "FLP-7-4.txt"
 OPT = 43
 CENTERS = [0, 3]
-MIN_TRAVEL_OPT = 44
+MIN_TRAVEL_OPT = 18
 
 
 def read_instance(file_name):

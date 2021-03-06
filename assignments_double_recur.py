@@ -1,25 +1,11 @@
-def affiche(self):
-    res = ''
-    for i in range(self.taille):
-        res = res + self.s[i]
-    print(res)
-
-def generationMots(self, i):
-    if i == self.taille:
-        self.affiche()
-    else:
-        for c in "abcdefghijklmnopqrstuvwxyz":
-            self.s[i] = c
-            self.generationMots(i + 1)
-
-
 def get_assignements(capacity_subset,
                      demand,
                      travel_cost,
                      cost,
                      current_cost,
                      assigning=None,
-                     i=0):
+                     i=0,
+                     a = 0):
     global n
     global l
     global assignments
@@ -35,46 +21,37 @@ def get_assignements(capacity_subset,
             cost = current_cost
 
             print('.')
-        assigning = [-1] * n
-        i = 0
-        current_cost = 0
+
     else:
         for c in range(l):
             for d in range(n):
                 cap, index = capacity_subset[c]
                 f = (d + i) % n
-                a = 0
                 ca = c + a
-                assigned = False
-
-                while (not assigned) & (ca < l):
+                if ca < l:
                     if demand[f] <= cap:
-
                         if current_cost + travel_cost[f][index] <= cost:
-                            assigned = True
                             assigning[i] = index
 
                             current_cost += travel_cost[f][index]
                             cap -= demand[f]
                             capacity_subset[ca] = [cap, index]
 
-                            get_assignements(capacity_subset,
-                                             demand,
-                                             travel_cost,
-                                             cost,
-                                             current_cost,
-                                             assigning,
-                                             i + 1)
-                    else:
-                        if ca < l:
-                            ca += 1
-                            cap, index = capacity_subset[ca]
-    """
-                pas = 0
-                assigning[-1] = -1
-                current_cost -= travel_cost[d][index]
-                cap += demand[f]
-"""
+                get_assignements(capacity_subset,
+                                 demand,
+                                 travel_cost,
+                                 cost,
+                                 current_cost,
+                                 assigning,
+                                 i, a + 1)
+        get_assignements(capacity_subset,
+                         demand,
+                         travel_cost,
+                         cost,
+                         current_cost,
+                         assigning,
+                         i + 1, a)
+
     return cost, assignments
 
 
