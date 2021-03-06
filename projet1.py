@@ -18,30 +18,29 @@ def get_subset(values, choices=None):
     for i in range(len(values)):
         if choices[i]:
             subset.append(values[i])
-        else:
-            subset.append(0)
+
     return subset
 
 
-def getMinTravelCostAssigments(values, choices, demand, travel_cost,
+def getMinTravelCostAssigments(sortedescending_indexed_capacities, choices, demand, travel_cost,
                                current=0, subsets=None, cost=-1,
                                assignments=None):
     """
 
     :param cost:
     :param assignments:
-    :param values:
+    :param sortedescending_indexed_capacities:
     :param demand:
     :param current:
     :param subsets:
     :return:
     """
-    # using a mask of size len(values)
+    # using a mask of size len(sortedescending_indexed_capacities)
     if assignments is None:
         assignments = []
+
     global n
     global total_demand
-    global Noned
 
     if subsets is None:
         subsets = []
@@ -49,39 +48,38 @@ def getMinTravelCostAssigments(values, choices, demand, travel_cost,
         print('total_demand:', total_demand)
 
     if current == 0:
-        n = 0
-        Noned = 0
-        for i in range(len(choices)):
-            if choices[i] is not None:
-                choices[i] = True
-                n += 1
-            else:
-                Noned += 1
+        n = len(sortedescending_indexed_capacities)
+        choices = [True] * n
 
     if current == n:
         current_sum = 0
         for i in range(len(choices)):
             if choices[i]:
-                current_sum += values[i]
+                v = sortedescending_indexed_capacities[i][0]
+                current_sum += v
         if total_demand <= current_sum:
-            subsets.append(get_subset(values, choices))
+            subsets.append(get_subset(
+                sortedescending_indexed_capacities, choices))
 
     else:
         # try with
-        choices[current + Noned] = True
-        getMinTravelCostAssigments(values, choices, demand, travel_cost,
+        choices[current] = True
+        getMinTravelCostAssigments(sortedescending_indexed_capacities, choices, demand, travel_cost,
                                    current + 1, subsets)
         # try without
         if current == 0:
-            values[current + Noned] = 0
-            choices[current + Noned] = None
-            if total_demand <= sum(values):
-                getMinTravelCostAssigments(values, choices, demand,
+            del sortedescending_indexed_capacities[current]
+            del choices[current]
+            test_cap = 0
+            for c in range(len(sortedescending_indexed_capacities)):
+                test_cap += sortedescending_indexed_capacities[c][0]
+            if total_demand <= test_cap:
+                getMinTravelCostAssigments(sortedescending_indexed_capacities, choices, demand,
                                            travel_cost, current,
                                            subsets)
         else:
-            choices[current + Noned] = False
-            getMinTravelCostAssigments(values, choices, demand,
+            choices[current] = False
+            getMinTravelCostAssigments(sortedescending_indexed_capacities, choices, demand,
                                        travel_cost, current + 1,
                                        subsets)
     return subsets
@@ -104,14 +102,17 @@ def minimum_travel_cost(demand,
     """
     cost = -1
     assignments = []
-    sortedescending_capacity = sorted(capacity, reverse=True)
-    print(sortedescending_capacity)
+    indexed_capacities = []
+    for i in range(len(capacity)):
+        indexed_capacities.append([capacity[i], i])
+    sortedescending_indexed_capacities = sorted(indexed_capacities, reverse=True)
+    print('sortedescending_indexed_capacities:',
+          sortedescending_indexed_capacities)
     choices = [True] * len(capacity)
-    MinTravelCostAssigments = getMinTravelCostAssigments(
-        sortedescending_capacity, choices, demand, travel_cost)
-    print('MinTravelCostAssigments : ',
-          MinTravelCostAssigments)
-
+    print('MinTravelCostAssigments : ')
+    print(getMinTravelCostAssigments(
+        sortedescending_indexed_capacities, choices, demand,
+        travel_cost))
     return (cost, assignments)
 
 
@@ -175,12 +176,23 @@ def read_instance(file_name):
 # Résolution du FLP sur l'instance passée en ligne de commande
 if __name__ == "__main__":
 
+
+    opening_cost, demand, capacity, travel_cost = read_instance(
+      'FLP-7-4.txt')
+    print("Instance : {}".format('FLP-7-4.txt'))
+    print("Opening costs : {}".format(opening_cost))
+    print("Demand : {}".format(demand))
+    print("Capacity : {}".format(capacity))
+    print("Travel costs : {}".format(travel_cost))
+    print("Résultats : {}".format(
+        facility_location(opening_cost, demand, capacity,
+                          travel_cost)))
+"""   
     if len(sys.argv) == 2:
 
         opening_cost, demand, capacity, travel_cost = read_instance(
-            sys.argv[1])
-        # opening_cost, demand, capacity, travel_cost = read_instance(
-        #   'FLP-7-4.txt')
+           sys.argv[1])
+        
         print("Instance : {}".format(sys.argv[1]))
         print("Opening costs : {}".format(opening_cost))
         print("Demand : {}".format(demand))
@@ -191,3 +203,4 @@ if __name__ == "__main__":
                               travel_cost)))
     else:
         print("Veuillez fournir un nom d'instance")
+"""

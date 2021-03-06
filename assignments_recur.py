@@ -7,38 +7,63 @@ def generationMots(self, i):
             self.generationMots(i + 1)
 
 
-def get_assignements(capacity_subset, demand, travel_cost,
-                     current_cost, cost=-1,
-                     assigning=None, d=0, c=0):
+def get_assignements(capacity_subset,
+                     demand,
+                     travel_cost,
+                     cost,
+                     assignments,
+                     current_cost,
+                     assigning=None,
+                     i=0):
     global n
     global capacity_indexes
-    if assigning is None:
-        assigning = []
-        n = 0
-        capacity_indexes = []
-        for i in range(len(capacity_subset)):
-            if 0 < capacity_subset[i]:
-                capacity_indexes.append(i)
-                n += 1
-        c = capacity_indexes[0]
+    global l
 
-    if c == n:
+    if assigning is None:
+        capacity_subset = sorted(capacity_subset)
+        n = len(demand)
+
+        capacity_indexes = []
+        for s in range(len(capacity_subset)):
+            if 0 < capacity_subset[s]:
+                capacity_indexes.append(s)
+        l = len(capacity_indexes)
+        assigning = [-1] * n
+
+    if i == n:
         assignments = assigning
+        cost = current_cost
 
     else:
-        for d in range(len(demand)):
-            if (demand[d] <= capacity_subset[capacity_indexes[c]]) \
-                    and (
-                    current_cost + travel_cost[d][c] <= cost):
-                assigning.append(capacity_indexes[c])
-                current_cost += travel_cost[d][c]
-                capacity_subset[capacity_indexes[c]] -= demand[d]
-                get_assignements(capacity_subset, demand, travel_cost,
-                                 current_cost, cost,
-                                 assigning, d, c + 1)
-            del assigning[-1]
-            current_cost -= travel_cost[d][c]
-            capacity_subset[capacity_indexes[c]] += demand[d]
+        for c in range(l):
+            for d in range(n):
+
+                f = (d + i) % n
+                assigned = False
+                while (not assigned) & (c < l):
+                    ci = capacity_indexes[c]
+                    if (demand[f] <= capacity_subset[ci]) \
+                            and (
+                            current_cost + travel_cost[f][ci] <= cost):
+                        assigning[i] = ci
+                        assigned = True
+                        current_cost += travel_cost[f][ci]
+                        capacity_subset[ci] -= demand[f]
+
+                        get_assignements(capacity_subset,
+                                         demand,
+                                         travel_cost,
+                                         cost,
+                                         assignment,
+                                         current_cost,
+                                         assigning,
+                                         i + 1)
+                    else:
+                        c += 1
+
+                assigning[-1] = -1
+                current_cost -= travel_cost[d][ci]
+                capacity_subset[ci] += demand[f]
 
     return cost, assignments
 
@@ -46,16 +71,25 @@ def get_assignements(capacity_subset, demand, travel_cost,
 demand = [8, 13, 8, 9, 11, 9, 7]
 capacity_subset = [45, 30, 0, 20]
 travel_cost = [[1, 3, 3, 6],
-                [2, 1, 3, 5],
-                [2, 4, 1, 6],
-                [2, 1, 2, 2],
-                [5, 3, 6, 2],
-                [4, 6, 2, 4],
-                [5, 6, 4, 2]]
-sols=[]
+               [2, 1, 3, 5],
+               [2, 4, 1, 6],
+               [2, 1, 2, 2],
+               [5, 3, 6, 2],
+               [4, 6, 2, 4],
+               [5, 6, 4, 2]]
+sols = []
 total_demand: 65
-MinTravelCostAssigments :  [[45, 30, 25, 20], [45, 30, 25, 0], [45, 30, 0, 20], [45, 30, 0, 0], [45, 0, 25, 20], [45, 0, 25, 0], [45, 0, 0, 20], [0, 30, 25, 20]]
+MinTravelCostAssigments: [[45, 30, 25, 20], [45, 30, 25, 0],
+                          [45, 30, 0, 20], [45, 30, 0, 0],
+                          [45, 0, 25, 20], [45, 0, 25, 0],
+                          [45, 0, 0, 20], [0, 30, 25, 20]]
+cost = 1000
+assignment = []
 
-print(get_assignements(capacity_subset, demand, travel_cost,
-                     current_cost=0, cost=1000,
-                     assigning=None, d=0, c=0))
+print(get_assignements(capacity_subset,
+                       demand,
+                       travel_cost,
+                       cost,
+                       assignment,
+                       current_cost=0,
+                       assigning=None, i=0))
