@@ -64,8 +64,12 @@ def getMinTravelCostAssigments(sortedescending_indexed_capacities, choices, dema
     else:
         # try with
         choices[current] = True
-        getMinTravelCostAssigments(sortedescending_indexed_capacities, choices, demand, travel_cost,
-                                   current + 1, subsets)
+        getMinTravelCostAssigments(sortedescending_indexed_capacities,
+                                   choices,
+                                   demand,
+                                   travel_cost,
+                                   current + 1,
+                                   subsets)
         # try without
         if current == 0:
             del sortedescending_indexed_capacities[current]
@@ -74,13 +78,19 @@ def getMinTravelCostAssigments(sortedescending_indexed_capacities, choices, dema
             for c in range(len(sortedescending_indexed_capacities)):
                 test_cap += sortedescending_indexed_capacities[c][0]
             if total_demand <= test_cap:
-                getMinTravelCostAssigments(sortedescending_indexed_capacities, choices, demand,
-                                           travel_cost, current,
+                getMinTravelCostAssigments(sortedescending_indexed_capacities,
+                                           choices,
+                                           demand,
+                                           travel_cost,
+                                           current,
                                            subsets)
         else:
             choices[current] = False
-            getMinTravelCostAssigments(sortedescending_indexed_capacities, choices, demand,
-                                       travel_cost, current + 1,
+            getMinTravelCostAssigments(sortedescending_indexed_capacities,
+                                       choices,
+                                       demand,
+                                       travel_cost,
+                                       current + 1,
                                        subsets)
     return subsets
 
@@ -98,7 +108,9 @@ def minimum_travel_cost(demand,
     si un centre n’est pas construit sur un site j, alors
     capacity[j]=0
     :param travel_cost: tableau tel que travel_cost[i][j] = ti j
-    :return:
+    :return:(cost,assignments)
+            (-1,[]) Si aucune affectation ne permet de satisfaire les
+            demandes
     """
     cost = -1
     assignments = []
