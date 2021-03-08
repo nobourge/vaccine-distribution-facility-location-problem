@@ -87,11 +87,12 @@ def getSubsetAssignements(capacity_subset,
                           assigned,
                           profondeur):
     for f in range(len(demand)):
-        dem = demand[f]
-        assigning = [-1] * n
+        """dem = demand[f]
+        assigning = [-1] * len_capacity
         assigned = 0
         current_cost = 0
-        capacity_subset = origin
+        capacity_subset = origin"""
+        possible_assigns = get_possible_assigns(capacity_subset, dem)
 
 
 
@@ -106,6 +107,7 @@ sols = []
 total_demand: 65
 
 assignment = []
+
 
 print(getSubsetAssignements(capacity_subset,
                             demand,

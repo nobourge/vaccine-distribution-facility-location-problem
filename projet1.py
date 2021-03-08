@@ -3,96 +3,69 @@
 # Matricule : 000496667
 
 import sys
+from copy import deepcopy
 
 
-def get_assignements(capacitySubset, demand, travel_cost, cost=-1,
-                               assignments=None):
-    for capacity in capacitySubset:
-        if 0 < capacity:
-            pass
-            # todo
+def permutations(lst):
+    # If lst is empty then there are no permutations
+    if len(lst) == 0:
+        return []
+
+        # If there is only one element in lst then, only
+    # one permuatation is possible
+    if len(lst) == 1:
+        return [lst]
+
+        # Find the permutations for lst if there are
+    # more than 1 characters
+
+    l = []  # empty list that will store current permutation
+
+    # Iterate the input(lst) and calculate the permutation
+    for i in range(len(lst)):
+        m = lst[i]
+
+        # Extract lst[i] or m from the list.  remLst is
+        # remaining list
+        remLst = lst[:i] + lst[i + 1:]
+
+        # Generating all permutations where m is first
+        # element
+        for p in permutations(remLst):
+            l.append([m] + p)
+    return l
 
 
-def get_subset(values, choices=None):
-    subset = []
-    for i in range(len(values)):
-        if choices[i]:
-            subset.append(values[i])
+def assign(dp,
+           sp,
+           travel_cost,
+           cost,
+           ):
+    # print(dp, sp)
+    current_cost = 0
+    assigning = [-1] * len(dp)
+    for d in dp:
+        assigned = False
+        i = 0
+        c = 0
+        while not assigned and c < len(sp):
 
-    return subset
+            if d[0] <= sp[c][0]:
+                if (current_cost + travel_cost[d[1]][sp[c][1]]) < cost:
+                    assigning[d[1]] = sp[c][1]
+                    sp[c][0] -= d[0]
+                    assigned = True
+                    current_cost += travel_cost[d[1]][sp[c][1]]
+                else:
+                    return -1, []
+            else:
+                if (c + 1) < len(sp):
+                    c += 1
+                else:
+                    return -1, []
+    cost = current_cost
 
-
-def getMinTravelCostAssigments(sortedescending_indexed_capacities, choices, demand, travel_cost,
-                               current=0, subsets=None, cost=-1,
-                               assignments=None):
-    """
-
-    :param cost:
-    :param assignments:
-    :param sortedescending_indexed_capacities:
-    :param demand:
-    :param current:
-    :param subsets:
-    :return:
-    """
-    # using a mask of size len(sortedescending_indexed_capacities)
-    if assignments is None:
-        assignments = []
-
-    global n
-    global total_demand
-
-    if subsets is None:
-        subsets = []
-        total_demand = sum(demand)
-        print('total_demand:', total_demand)
-
-    if current == 0:
-        n = len(sortedescending_indexed_capacities)
-        choices = [True] * n
-
-    if current == n:
-        current_sum = 0
-        for i in range(len(choices)):
-            if choices[i]:
-                v = sortedescending_indexed_capacities[i][0]
-                current_sum += v
-        if total_demand <= current_sum:
-            subsets.append(get_subset(
-                sortedescending_indexed_capacities, choices))
-
-    else:
-        # try with
-        choices[current] = True
-        getMinTravelCostAssigments(sortedescending_indexed_capacities,
-                                   choices,
-                                   demand,
-                                   travel_cost,
-                                   current + 1,
-                                   subsets)
-        # try without
-        if current == 0:
-            del sortedescending_indexed_capacities[current]
-            del choices[current]
-            test_cap = 0
-            for c in range(len(sortedescending_indexed_capacities)):
-                test_cap += sortedescending_indexed_capacities[c][0]
-            if total_demand <= test_cap:
-                getMinTravelCostAssigments(sortedescending_indexed_capacities,
-                                           choices,
-                                           demand,
-                                           travel_cost,
-                                           current,
-                                           subsets)
-        else:
-            choices[current] = False
-            getMinTravelCostAssigments(sortedescending_indexed_capacities,
-                                       choices,
-                                       demand,
-                                       travel_cost,
-                                       current + 1,
-                                       subsets)
-    return subsets
+    return cost, assigning
 
 
 def minimum_travel_cost(demand,
@@ -105,27 +78,148 @@ def minimum_travel_cost(demand,
      tient compte d’aucun coût de construction.
     :param demand: list tel que demand[i] = di pour i ∈ I.
     :param capacity:list tel que capacity[j]= cj j ∈ J
-    si un centre n’est pas construit sur un site j, alors
+    si un centre len_capacity’est pas construit sur un site j, alors
     capacity[j]=0
     :param travel_cost: tableau tel que travel_cost[i][j] = ti j
     :return:(cost,assignments)
             (-1,[]) Si aucune affectation ne permet de satisfaire les
             demandes
     """
-    cost = -1
-    assignments = []
+    """
     indexed_capacities = []
     for i in range(len(capacity)):
         indexed_capacities.append([capacity[i], i])
-    sortedescending_indexed_capacities = sorted(indexed_capacities, reverse=True)
-    print('sortedescending_indexed_capacities:',
-          sortedescending_indexed_capacities)
-    choices = [True] * len(capacity)
-    print('MinTravelCostAssigments : ')
-    print(getMinTravelCostAssigments(
-        sortedescending_indexed_capacities, choices, demand,
-        travel_cost))
-    return (cost, assignments)
+    sortedescending_indexed_capacities = sorted(indexed_capacities,
+                                                reverse=True)"""
+    assignments = []
+    indexed_demand = []
+    for i in range(len(demand)):
+        indexed_demand.append([demand[i], i])
+    indexed_demand_permutations = permutations(indexed_demand)
+    cost = -1
+    indexed_capacity_permutations = permutations(capacity)
+    for sp in indexed_capacity_permutations[:-1]:
+        for dp in indexed_demand_permutations:
+            if cost == -1:
+                cost = 1000
+            permuted_subset_assignments_cost, \
+            permuted_subset_assignments = \
+                assign(dp,
+                       deepcopy(sp),
+                       travel_cost,
+                       cost
+                       )
+            """get_subset_assignments(sp,
+                                       dp,
+                                       travel_cost,
+                                       cost,
+                                       current_cost=0,
+                                       assigning=None,
+                                       i=0,
+                                       a=0)"""
+            if len(permuted_subset_assignments) == len(demand):
+                if permuted_subset_assignments_cost < cost:
+                    cost = permuted_subset_assignments_cost
+                    assignments = permuted_subset_assignments
+    if len(assignments) == len(demand):
+        return (cost, assignments)
+    else:
+        return -1, []
+
+
+def get_subset(values, choices=None):
+    subset = []
+    for i in range(len(values)):
+        if choices[i]:
+            subset.append(values[i])
+
+    return subset
+
+
+def get_min_cost_assignments(sortedescending_indexed_capacities,
+                             choices,
+                             demand,
+                             opening_cost, start, current):
+    """
+
+    :param cost:
+    :param assignments:
+    :param sortedescending_indexed_capacities:
+    :param demand:
+    :param current:
+    :param subsets:
+    :return:
+    """
+    # using a mask of size len(sortedescending_indexed_capacities)
+    global len_capacity
+    global len_demand
+    global total_demand
+
+    global cost
+    global min_cost_assignments
+
+    if start:
+        len_demand = len(demand)
+        total_demand = sum(demand)
+        print('total_demand:', total_demand)
+
+        cost = 1000
+        min_cost_assignments = []
+        start = False
+
+    if current == 0:
+        len_capacity = len(sortedescending_indexed_capacities)
+        choices = [True] * len_capacity
+
+    if current == len_capacity:
+        current_capacity_sum = 0
+        for i in range(len(choices)):
+            if choices[i]:
+                v = sortedescending_indexed_capacities[i][0]
+                current_capacity_sum += v
+        if total_demand <= current_capacity_sum:
+
+            subset = get_subset(sortedescending_indexed_capacities,
+                                choices)
+            print(subset)
+            subset_travel_cost, subset_assignments = \
+                minimum_travel_cost(demand, subset, travel_cost)
+
+            if len(subset_assignments) == len_demand:
+                subset_build_cost = 0
+                for i in subset:
+                    subset_build_cost += opening_cost[i[1]]
+
+
+
+                subset_tot_cost = subset_build_cost + subset_travel_cost
+                if subset_tot_cost < cost:
+                    cost = subset_tot_cost
+                    min_cost_assignments = subset_assignments
+
+    else:
+        # try with
+        choices[current] = True
+        get_min_cost_assignments(sortedescending_indexed_capacities, choices,
+                                 demand, opening_cost, start, current + 1)
+
+        # try without
+        if current == 0:
+            del sortedescending_indexed_capacities[current]
+            del choices[current]
+            test_cap = 0
+            for c in range(len(sortedescending_indexed_capacities)):
+                test_cap += sortedescending_indexed_capacities[c][0]
+            if total_demand <= test_cap:
+                get_min_cost_assignments(sortedescending_indexed_capacities,
+                                         choices, demand, opening_cost, start,
+                                         current)
+        else:
+            choices[current] = False
+            get_min_cost_assignments(sortedescending_indexed_capacities,
+                                     choices, demand, opening_cost, start,
+                                     current + 1)
+    return cost, min_cost_assignments
 
 
 def facility_location(opening_cost, demand, capacity, travel_cost):
@@ -141,9 +235,29 @@ def facility_location(opening_cost, demand, capacity, travel_cost):
     cost = -1
     centers = []
     assignments = []
-    minimum_travel_cost(demand, capacity, travel_cost)
+    indexed_capacities = []
+    for i in range(len(capacity)):
+        indexed_capacities.append([capacity[i], i])
+    sortedescending_indexed_capacities = sorted(indexed_capacities,
+                                                reverse=True)
+    print('sortedescending_indexed_capacities:',
+          sortedescending_indexed_capacities)
+    choices = [True] * len(capacity)
+    cost, assignments = get_min_cost_assignments(
+        sortedescending_indexed_capacities, choices,
+        demand, opening_cost, start=True, current=0)
+    if 0 < len(assignments):
+        subset_travel_cost, assignments = minimum_travel_cost(demand,
+                                                              assignments,
+                                                              travel_cost)
 
-    return (cost, centers, assignments)
+        cost += subset_travel_cost
+        for i in assignments:
+            centers.append(i[1])
+
+        return (cost, centers, assignments)
+    else:
+        return (-1,[],[])
 
 
 def read_instance(file_name):
@@ -187,10 +301,8 @@ def read_instance(file_name):
 
 # Résolution du FLP sur l'instance passée en ligne de commande
 if __name__ == "__main__":
-
-
     opening_cost, demand, capacity, travel_cost = read_instance(
-      'FLP-7-4.txt')
+        'FLP-7-4.txt')
     print("Instance : {}".format('FLP-7-4.txt'))
     print("Opening costs : {}".format(opening_cost))
     print("Demand : {}".format(demand))
