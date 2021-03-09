@@ -37,29 +37,30 @@ def permutations(lst):
 
 
 def assign(dp,
-           sp,
+           permuted_capacity,
            travel_cost,
            cost,
+           i
            ):
-    # print(dp, sp)
+    # print(i, dp, capacity)
     current_cost = 0
     assigning = [-1] * len(dp)
     for d in dp:
         assigned = False
         i = 0
         c = 0
-        while not assigned and c < len(sp):
+        while not assigned and c < len(permuted_capacity):
 
-            if d[0] <= sp[c][0]:
-                if (current_cost + travel_cost[d[1]][sp[c][1]]) < cost:
-                    assigning[d[1]] = sp[c][1]
-                    sp[c][0] -= d[0]
+            if d[0] <= permuted_capacity[c][0]:
+                if (current_cost + travel_cost[d[1]][permuted_capacity[c][1]]) < cost:
+                    assigning[d[1]] = permuted_capacity[c][1]
+                    permuted_capacity[c][0] -= d[0]
                     assigned = True
-                    current_cost += travel_cost[d[1]][sp[c][1]]
+                    current_cost += travel_cost[d[1]][permuted_capacity[c][1]]
                 else:
                     return -1, []
             else:
-                if (c + 1) < len(sp):
+                if (c + 1) < len(permuted_capacity):
                     c += 1
                 else:
                     return -1, []
@@ -85,6 +86,7 @@ def minimum_travel_cost(demand,
             (-1,[]) Si aucune affectation ne permet de satisfaire les
             demandes
     """
+    print(capacity)
     """
     indexed_capacities = []
     for i in range(len(capacity)):
@@ -97,19 +99,22 @@ def minimum_travel_cost(demand,
         indexed_demand.append([demand[i], i])
     indexed_demand_permutations = permutations(indexed_demand)
     cost = -1
-    indexed_capacity_permutations = permutations(capacity)
-    for sp in indexed_capacity_permutations[:-1]:
+    i = 0
+    for permuted_capacity in permutations(capacity):
+
         for dp in indexed_demand_permutations:
             if cost == -1:
                 cost = 1000
+            i += 1
             permuted_subset_assignments_cost, \
             permuted_subset_assignments = \
                 assign(dp,
-                       deepcopy(sp),
+                       deepcopy(permuted_capacity),
                        travel_cost,
-                       cost
+                       cost,
+                       i
                        )
-            """get_subset_assignments(sp,
+            """get_subset_assignments(capacity,
                                        dp,
                                        travel_cost,
                                        cost,
@@ -132,7 +137,6 @@ def get_subset(values, choices=None):
     for i in range(len(values)):
         if choices[i]:
             subset.append(values[i])
-
     return subset
 
 
@@ -181,7 +185,7 @@ def get_min_cost_assignments(sortedescending_indexed_capacities,
 
             subset = get_subset(sortedescending_indexed_capacities,
                                 choices)
-            print(subset)
+            # print(demand, subset)
             subset_travel_cost, subset_assignments = \
                 minimum_travel_cost(demand, subset, travel_cost)
 
@@ -233,7 +237,7 @@ def facility_location(opening_cost, demand, capacity, travel_cost):
             else: tuple (cost, centers, assigning)
     """
     cost = -1
-    centers = []
+    centers = set()
     assignments = []
     indexed_capacities = []
     for i in range(len(capacity)):
@@ -247,13 +251,9 @@ def facility_location(opening_cost, demand, capacity, travel_cost):
         sortedescending_indexed_capacities, choices,
         demand, opening_cost, start=True, current=0)
     if 0 < len(assignments):
-        subset_travel_cost, assignments = minimum_travel_cost(demand,
-                                                              assignments,
-                                                              travel_cost)
-
-        cost += subset_travel_cost
         for i in assignments:
-            centers.append(i[1])
+            centers.add(i)
+        centers = list(centers)
 
         return (cost, centers, assignments)
     else:
