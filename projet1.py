@@ -3,6 +3,7 @@
 # Matricule : 000496667
 
 import sys
+import time
 from copy import deepcopy
 
 
@@ -87,12 +88,13 @@ def minimum_travel_cost(demand,
             demandes
     """
     print(capacity)
-    """
-    indexed_capacities = []
-    for i in range(len(capacity)):
-        indexed_capacities.append([capacity[i], i])
-    sortedescending_indexed_capacities = sorted(indexed_capacities,
-                                                reverse=True)"""
+    if isinstance(capacity[0], int):
+        indexed_capacities = []
+        for i in range(len(capacity)):
+            indexed_capacities.append([capacity[i], i])
+        # sortedescending_indexed_capacities = sorted(
+            # indexed_capacities,reverse=True)
+        capacity = indexed_capacities
     assignments = []
     indexed_demand = []
     for i in range(len(demand)):
@@ -143,7 +145,9 @@ def get_subset(values, choices=None):
 def get_min_cost_assignments(sortedescending_indexed_capacities,
                              choices,
                              demand,
-                             opening_cost, start, current):
+                             opening_cost,
+                             travel_cost,
+                             start, current):
     """
 
     :param cost:
@@ -194,8 +198,6 @@ def get_min_cost_assignments(sortedescending_indexed_capacities,
                 for i in subset:
                     subset_build_cost += opening_cost[i[1]]
 
-
-
                 subset_tot_cost = subset_build_cost + subset_travel_cost
                 if subset_tot_cost < cost:
                     cost = subset_tot_cost
@@ -205,7 +207,8 @@ def get_min_cost_assignments(sortedescending_indexed_capacities,
         # try with
         choices[current] = True
         get_min_cost_assignments(sortedescending_indexed_capacities, choices,
-                                 demand, opening_cost, start, current + 1)
+                                 demand, opening_cost,
+                                 travel_cost, start, current + 1)
 
         # try without
         if current == 0:
@@ -216,12 +219,15 @@ def get_min_cost_assignments(sortedescending_indexed_capacities,
                 test_cap += sortedescending_indexed_capacities[c][0]
             if total_demand <= test_cap:
                 get_min_cost_assignments(sortedescending_indexed_capacities,
-                                         choices, demand, opening_cost, start,
+                                         choices, demand, opening_cost,
+                                         travel_cost, start,
                                          current)
         else:
             choices[current] = False
             get_min_cost_assignments(sortedescending_indexed_capacities,
-                                     choices, demand, opening_cost, start,
+                                     choices, demand, opening_cost,
+                                     travel_cost,
+                                     start,
                                      current + 1)
     return cost, min_cost_assignments
 
@@ -244,12 +250,14 @@ def facility_location(opening_cost, demand, capacity, travel_cost):
         indexed_capacities.append([capacity[i], i])
     sortedescending_indexed_capacities = sorted(indexed_capacities,
                                                 reverse=True)
-    print('sortedescending_indexed_capacities:',
-          sortedescending_indexed_capacities)
+
+    # print('sortedescending_indexed_capacities:',
+    # sortedescending_indexed_capacities)
+
     choices = [True] * len(capacity)
     cost, assignments = get_min_cost_assignments(
         sortedescending_indexed_capacities, choices,
-        demand, opening_cost, start=True, current=0)
+        demand, opening_cost, travel_cost, start=True, current=0)
     if 0 < len(assignments):
         for i in assignments:
             centers.add(i)
@@ -301,6 +309,9 @@ def read_instance(file_name):
 
 # Résolution du FLP sur l'instance passée en ligne de commande
 if __name__ == "__main__":
+
+    start = time.time()
+
     opening_cost, demand, capacity, travel_cost = read_instance(
         'FLP-7-4.txt')
     print("Instance : {}".format('FLP-7-4.txt'))
@@ -311,6 +322,9 @@ if __name__ == "__main__":
     print("Résultats : {}".format(
         facility_location(opening_cost, demand, capacity,
                           travel_cost)))
+
+    end = time.time()
+    print(end - start)
 """   
     if len(sys.argv) == 2:
 
