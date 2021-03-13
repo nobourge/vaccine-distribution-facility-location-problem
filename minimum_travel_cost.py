@@ -29,41 +29,25 @@ def permutations(lst):
     return building_permutation
 
 
-def assign(dp,
-           permuted_capacity,
-           travel_cost,
-           cost,
-           i
-           ):
-    # print(i, dp, capacity)
-    current_cost = 0
-    assigning = [-1] * len(dp)
-    for d in dp:
-        assigned = False
-        i = 0
-        c = 0
-        while not assigned and c < len(permuted_capacity):
+def assign_family(cost,
+                  demand,
+                  d,
+                  family_min_travel_cost,
+                  assignments,
+                  assigned_families,
+                  built,
+                  nearest_built):
 
-            if d[0] <= permuted_capacity[c][0]:
-                if (current_cost + travel_cost[d[1]][
-                     permuted_capacity[c][1]]) < cost:
-                    assigning[d[1]] = permuted_capacity[c][1]
-                    permuted_capacity[c][0] -= d[0]
-                    assigned = True
-                    current_cost += travel_cost[d[1]][
-                        permuted_capacity[c][1]]
-                else:
-                    # print(cost, '< assigning', permuted_capacity[c],
-                    #    'to', assigning,)
-                    return -1, []
-            else:
-                if (c + 1) < len(permuted_capacity):
-                    c += 1
-                else:
-                    return -1, []
-    cost = current_cost
-
-    return cost, assigning
+    print(' site', nearest_built[1],
+          'stock:', nearest_built[0],
+          'satifies family', d,
+          'demand :', demand[d])
+    assignments[d] = nearest_built[1]
+    assigned_families += 1
+    cost += family_min_travel_cost
+    # print(built, nearest_built)
+    built[built.index(nearest_built)][0] -= demand[d]
+    family_min_travel_cost = -1
 
 
 def minimum_travel_cost(demand,
@@ -83,52 +67,67 @@ def minimum_travel_cost(demand,
             (-1,[]) Si aucune affectation ne permet de satisfaire les
             demandes
     """
-    print(capacity)
-    if isinstance(capacity[0], int):
-        indexed_capacities = []
-        for i in range(len(capacity)):
-            indexed_capacities.append([capacity[i], i])
-        # sortedescending_indexed_capacities = sorted(
-        # indexed_capacities,reverse=True)
-        capacity = indexed_capacities
-    assignments = []
-    indexed_demand = []
+    len_demand = len(demand)
+    len_capacity = len(capacity)
 
-    for i in range(len(demand)):
-        indexed_demand.append([demand[i], i])
-    indexed_demand_permutations = permutations(indexed_demand)
-    cost = -1
-    i = 0
-    for permuted_capacity in permutations(capacity):
+    cost = 0
+    assignments = [-1] * len_demand
+    assigned_families = 0
+    to_assign_index_list = [[i] for i in range(len_demand)]
+    len_to_assign = len(to_assign_index_list)
+    built = []
+    for j in range(len_capacity):
+        if 0 < capacity[j]:
+            built.append([capacity[j], j])
 
-        for dp in indexed_demand_permutations:
-            if cost == -1:
-                cost = 1000
-            i += 1
-            permuted_subset_assignments_cost, \
-            permuted_subset_assignments = \
-                assign(dp,
-                       deepcopy(permuted_capacity),
-                       travel_cost,
-                       cost,
-                       i
-                       )
-            """get_subset_assignments(capacity,
-                                       dp,
-                                       travel_cost,
-                                       cost,
-                                       current_cost=0,
-                                       assigning=None,
-                                       i=0,
-                                       a=0)"""
-            if len(permuted_subset_assignments) == len(demand):
-                if permuted_subset_assignments_cost < cost:
-                    cost = permuted_subset_assignments_cost
-                    assignments = permuted_subset_assignments
-    if len(assignments) == len(demand):
-        return (cost, assignments)
+    nearest_built_potential = None
+    # built site with lowest current family travel_cost
+    to_assign_idx = 0
+    while 0 < len_to_assign:
+        family_min_travel_cost = -1
+        assigned = False
+        potential_sites = deepcopy(built)
+        while (not assigned) & (0 < len(potential_sites)):
+            # search of the nearest built
+            for b in potential_sites:
+                if travel_cost[to_assign_idx][b[1]] < family_min_travel_cost or \
+                        family_min_travel_cost == -1:
+                    family_min_travel_cost = travel_cost[to_assign_idx][b[1]]
+                    nearest_built = b
+                    nearest_built_potential = b
+
+
+            if demand[to_assign_idx] <= nearest_built_potential[0]:
+                print(' site', nearest_built_potential[1],
+                      'stock:', nearest_built_potential[0],
+                      'satifies family', to_assign_idx,
+                      'demand :', demand[to_assign_idx])
+                assignments[to_assign_idx] = nearest_built_potential[1]
+                assigned = True
+                cost += family_min_travel_cost
+                # print(built, nearest_built_potential)
+                built[built.index(nearest_built_potential)][0] -= demand[to_assign_idx]
+                family_min_travel_cost = -1
+
+                del to_assign_index_list[0]
+
+            else:  # search in remaining potentials
+                if 0 < len(potential_sites):
+                    del potential_sites[
+                        potential_sites.index(nearest_built_potential)]
+                family_min_travel_cost = -1
+
+        if not assigned:
+            # replace nearest built min with current family equal or
+            # above demand already assigned families with current family
+            pass
+
+    if assigned_families == len_demand:
+        return cost, assignments
     else:
-        return -1, []
+        return -1, []  # minimum_travel_cost(demand,
+        # capacity,
+        # travel_cost)
 
 
 demand = [8, 13, 8, 9, 11, 9, 7]

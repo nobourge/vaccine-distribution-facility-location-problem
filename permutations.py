@@ -10,14 +10,6 @@ def all_perms(elements):
             print(permutation)
 
 
-def permutations(head, tail=[]):
-    if len(head) == 0:
-        print(tail)
-    else:
-        for i in range(len(head)):
-            permutations([head[:i], head[i + 1:]], [tail, head[i]])
-
-
 def permutations(lst):
     # If lst is empty then there are no permutations
     if len(lst) == 0:
@@ -31,21 +23,19 @@ def permutations(lst):
         # Find the permutations for lst if there are
     # more than 1 characters
 
-    l = []  # empty list that will store current permutation
+    building_permutation = []
 
     # Iterate the input(lst) and calculate the permutation
     for i in range(len(lst)):
         m = lst[i]
 
-        # Extract lst[i] or m from the list.  remLst is
-        # remaining list
-        remLst = lst[:i] + lst[i + 1:]
+        # Extract lst[i] or m from the list
+        remaining_list = lst[:i] + lst[i + 1:]
 
-        # Generating all permutations where m is first
-        # element
-        for p in permutations(remLst):
-            l.append([m] + p)
-    return l
+        # Generating all permutations where m is first element
+        for p in permutations(remaining_list):
+            building_permutation.append([m] + p)
+    return building_permutation
 
 
 # Driver program to test above function

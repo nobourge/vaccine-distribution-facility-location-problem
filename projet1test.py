@@ -7,6 +7,27 @@ import time
 from copy import deepcopy
 
 
+def assign_family(cost,
+                  demand,
+                  d,
+                  family_min_travel_cost,
+                  assignments,
+                  assigned_families,
+                  built,
+                  nearest_built):
+
+    print(' site', nearest_built[1],
+          'stock:', nearest_built[0],
+          'satifies family', d,
+          'demand :', demand[d])
+    assignments[d] = nearest_built[1]
+    assigned_families += 1
+    cost += family_min_travel_cost
+    # print(built, nearest_built)
+    built[built.index(nearest_built)][0] -= demand[d]
+    family_min_travel_cost = -1
+
+
 def minimum_travel_cost(demand,
                         capacity,
                         travel_cost):
@@ -36,39 +57,32 @@ def minimum_travel_cost(demand,
         if 0 < capacity[j]:
             built.append([capacity[j], j])
 
-    indexed_demands = []
-    for d in range(len_demand):
-        indexed_demands.append([demand[d], d])
-    sortedescending_indexed_demand = sorted(indexed_demands,
-                                            reverse=True)
-    # biggest demand families assigned first
-
     nearest_built = None
     # built site with lowest current family travel_cost
 
-    for d in sortedescending_indexed_demand:
+    for d in range(len_demand):
         family_min_travel_cost = -1
         assigned = False
         potential_sites = deepcopy(built)
         while (not assigned) & (0 < len(potential_sites)):
             # search of the nearest built
             for b in potential_sites:
-                if travel_cost[d[1]][b[1]] < family_min_travel_cost or \
+                if travel_cost[d][b[1]] < family_min_travel_cost or \
                         family_min_travel_cost == -1:
-                    family_min_travel_cost = travel_cost[d[1]][b[1]]
+                    family_min_travel_cost = travel_cost[d][b[1]]
                     nearest_built = b
 
-            if d[0] <= nearest_built[0]:
+            if demand[d] <= nearest_built[0]:
                 print(' site', nearest_built[1],
                       'stock:', nearest_built[0],
                       'satifies family', d,
-                      'demand :', d[0])
-                assignments[d[1]] = nearest_built[1]
-                assigned = True
+                      'demand :', demand[d])
+                assignments[d] = nearest_built[1]
                 assigned_families += 1
+                assigned = True
                 cost += family_min_travel_cost
                 # print(built, nearest_built)
-                built[built.index(nearest_built)][0] -= d[0]
+                built[built.index(nearest_built)][0] -= demand[d]
                 family_min_travel_cost = -1
 
             else:  # search in remaining potentials
@@ -85,14 +99,14 @@ def minimum_travel_cost(demand,
         # travel_cost)
 
 
-def get_min_cost_assignments(capacity,
-                             sortedescending_indexed_capacities,
-                             choices,
-                             demand,
-                             opening_cost,
-                             travel_cost,
-                             start,
-                             current):
+def get_cheapest_result_satisfying_condition(capacity,
+                                             sortedescending_indexed_capacities,
+                                             choices,
+                                             demand,
+                                             opening_cost,
+                                             travel_cost,
+                                             start,
+                                             current):
     """
     recursively search the minimum cost satisfying total demand
     capacity subset & calls min_travel_cost to find its minimum cost
@@ -111,7 +125,6 @@ def get_min_cost_assignments(capacity,
     :return: cost, min_cost_assignments
     """
     # using a mask of size len(sortedescending_indexed_capacities)
-    # whereiscapacitydefined = capacity
     global len_capacity
     global len_demand
     global total_demand
@@ -164,14 +177,20 @@ def get_min_cost_assignments(capacity,
 
                 subset_tot_cost = subset_build_cost + subset_travel_cost
                 if subset_tot_cost < cost:
-                    print(subset_tot_cost, '<', cost)
+                    print(' total cost: ', subset_tot_cost, '<',
+                          cost)
                     cost = subset_tot_cost
                     min_cost_assignments = subset_assignments
-
+                elif subset_tot_cost > cost:
+                    print(' total cost: ', subset_tot_cost, '>',
+                          cost)
+                else:
+                    print(' total cost: ', subset_tot_cost, '=',
+                          cost)
     else:
         # try with current center
         choices[current] = True
-        get_min_cost_assignments(
+        get_cheapest_result_satisfying_condition(
             capacity,
             sortedescending_indexed_capacities,
                                  choices,
@@ -188,14 +207,14 @@ def get_min_cost_assignments(capacity,
                 # tests the new total capacity
 
             if total_demand <= test_cap:
-                get_min_cost_assignments(capacity,
-                    sortedescending_indexed_capacities,
-                    choices, demand, opening_cost,
-                    travel_cost, start,
-                    current)
+                get_cheapest_result_satisfying_condition(capacity,
+                                                         sortedescending_indexed_capacities,
+                                                         choices, demand, opening_cost,
+                                                         travel_cost, start,
+                                                         current)
         else:
             choices[current] = False
-            get_min_cost_assignments(
+            get_cheapest_result_satisfying_condition(
                 capacity,
                 sortedescending_indexed_capacities,
                                      choices, demand, opening_cost,
@@ -234,9 +253,9 @@ def facility_location(opening_cost, demand, capacity, travel_cost):
     # sortedescending_indexed_capacities)
 
     choices = [True] * len(capacity)
-    cost, assignments = get_min_cost_assignments(capacity,
-        sortedescending_indexed_capacities, choices,
-        demand, opening_cost, travel_cost, start=True, current=0)
+    cost, assignments = get_cheapest_result_satisfying_condition(capacity,
+                                                                 sortedescending_indexed_capacities, choices,
+                                                                 demand, opening_cost, travel_cost, start=True, current=0)
 
     if 0 < len(assignments):
         for i in assignments:
@@ -289,11 +308,10 @@ def read_instance(file_name):
 
 # Résolution du FLP sur l'instance passée en ligne de commande
 if __name__ == "__main__":
-    """
     start = time.time()
 
     opening_cost, demand, capacity, travel_cost = read_instance(
-        'FLP-7-4.txt')
+        'FLP-10-3-0.txt')
     print("Instance : {}".format('FLP-7-4.txt'))
     print("Opening costs : {}".format(opening_cost))
     print("Demand : {}".format(demand))
@@ -305,7 +323,7 @@ if __name__ == "__main__":
 
     end = time.time()
     print(end - start)
-    """
+"""   
     if len(sys.argv) == 2:
 
         opening_cost, demand, capacity, travel_cost = read_instance(
@@ -321,3 +339,4 @@ if __name__ == "__main__":
                               travel_cost)))
     else:
         print("Veuillez fournir un nom d'instance")
+"""
